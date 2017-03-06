@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# TODO
-# make a wildcard window option
-
 # make sure script exists and is readable
 if [ -z $1 ]; then
   echo "No script specified, exiting..."
