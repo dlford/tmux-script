@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# TODO
+# make a wildcard window option
+
+# make sure script exists and is readable
+if [ -z $1 ]; then
+  echo "No script specified, exiting..."
+  exit 1
+else
+  script="$HOME/.tmux-script/$1"
+  if [ ! -r "$script" ]; then
+    echo "$script does not exist or is not readable, exiting..."
+    exit 1
+  fi
+fi
+# this is for killing default window 0 when a session is created
+newSession="false"
+# work through lines of script file
+while read line; do
+  # session assignments
+  if [ "${line%::*}" == "session" ]; then
+    session="${line#*::}"
+  else
+    # make sure session is assigned
+    if [ -z $session ]; then
+      echo "You must assign session in script before any commands! Exiting..."
+      exit 1
+    fi
+    # split window and command arguments
+    window="${line%::*}"
+    command="${line#*::}"
+    # create session if not exists
+    if [ ! "$(tmux list-sessions 2>/dev/null | grep ^$session:)" ]; then
+      tmux new -s "$session" -d
+      newSession="true"
+    fi
+    # create window if not exists
+    if [ ! "$(tmux list-windows -t $session 2>/dev/null | grep $window)" ]; then
+      tmux new-window -t "$session" -n "$window"
+    fi
+    # if session was just created, kill default window 0
+    if [ $newSession == "true" ]; then
+      tmux kill-window -t "$session:0"
+      newSession="false"
+    fi
+    # run command from script
+    tmux send -t "$session:$window" "$command" ENTER
+  fi
+done < $script
+exit 0
