@@ -17,6 +17,8 @@ function doScript () {
   newSession="false"
   # work through lines of script file
   while read line; do
+    # ignore comments in script
+    [[ "$line"~="#.*" ]] && continue
     # session assignments
     if [ "${line%::*}" == "session" ]; then
       session="${line#*::}"

@@ -1,0 +1,38 @@
+# first name a tmux session in the format of 'session::name_of_session'
+# if a tmux session already exists by that name, that session will be used
+# if no session exists by that name a new session will be created.
+
+session::myExampleSession
+
+# commands are issued in similar format 'name_of_window::command_to_execute'
+# and much the same as sessions, if a window exists in the selected tmux
+# session by the name chosen, that window will be used, if no window by
+# that name exists, it will be created.
+# you can use 'all' for the window assignment to send a command to
+# all open windows in the active session.
+
+# this will run the command 'date' in a window named 'myExampleWindow0' in a
+# session named 'myExampleSession' as named above.
+myExampleWindow0::date
+
+# you can change sessions anywhere in a script if you want to, but
+# you don't need to define the session for each command, if the whole
+# script is to be run on the same session, you only need to set the
+# session once at the beginning of the script.
+
+# here is an example script that will ssh several different addresses
+# and then issue the command "ls -alh /var" in all windows.
+
+session::some-SSH-hosts-group
+host1::ssh 1.1.1.1
+host2::ssh 1.1.1.2
+host3::ssh 1.1.1.3
+all::ls -alh /var
+
+# note that if passwords or key passphrases were required to login to
+# the hosts, I would need one script just to call the SSH commands,
+# then attach to the tmux session and enter all the passwords manually,
+# disconnect from the tmux session, and run a second script to issue
+# the other commands. Much the same for any sudo commands or anything else
+# that may require a password. To my knowledge this is the only secure way to
+# handle password protected commands.
