@@ -32,17 +32,25 @@ while read line; do
       tmux new -s "$session" -d
       newSession="true"
     fi
-    # create window if not exists
-    if [ ! "$(tmux list-windows -t $session 2>/dev/null | grep $window)" ]; then
-      tmux new-window -t "$session" -n "$window"
+    if [ $window != "all" ]; then
+      # create window if not exists
+      if [ ! "$(tmux list-windows -t $session 2>/dev/null | grep $window)" ]; then
+        tmux new-window -t "$session" -n "$window"
+      fi
+      # if session was just created, kill default window 0
+      if [ $newSession == "true" ]; then
+        tmux kill-window -t "$session:0"
+        newSession="false"
+      fi
+      # run command from script
+      tmux send -t "$session:$window" "$command" ENTER
+    else
+      # run command for all windows
+      windows=("$(tmux list-windows -t $session -F '#W')")
+      for i in $windows; do
+        tmux send -t "$session:$i" "$command" ENTER
+      done
     fi
-    # if session was just created, kill default window 0
-    if [ $newSession == "true" ]; then
-      tmux kill-window -t "$session:0"
-      newSession="false"
-    fi
-    # run command from script
-    tmux send -t "$session:$window" "$command" ENTER
   fi
 done < $script
 exit 0
